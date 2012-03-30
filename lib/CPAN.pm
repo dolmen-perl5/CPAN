@@ -1340,30 +1340,41 @@ sub _list_sorted_descending_is_tested {
     }
 }
 
-#-> sub CPAN::set_perl5lib
-# Notes on max environment variable length:
-#   - Win32 : XP or later, 8191; Win2000 or NT4, 2047
-sub set_perl5lib {
-    my($self,$for) = @_;
+sub set_perl_env {
+	my ($self, $for) = @_;
     unless ($for) {
-        (undef,undef,undef,$for) = caller(1);
+        $for = (caller(1))[3];
         $for =~ s/.*://;
     }
+	$ENV{PERL5LIB} = exists $ENV{PERL5LIB} ? $ENV{PERL5LIB} : ($ENV{PERLLIB} || "");
+	$self->set_perl_env_path($for, PERL5LIB => qw<arch lib>);
+	$self->set_perl_env_path($for, PATH => qw<script>);
+}
+
+
+#-> sub CPAN::set_perl_env_path
+# Notes on max environment variable length:
+#   - Win32 : XP or later, 8191; Win2000 or NT4, 2047
+sub set_perl_env_path {
+    my($self,$for,$var) = splice @_, 0, 3;
+
     $self->{is_tested} ||= {};
     return unless %{$self->{is_tested}};
-    my $env = $ENV{PERL5LIB};
-    $env = $ENV{PERLLIB} unless defined $env;
-    my @env;
-    push @env, split /\Q$Config::Config{path_sep}\E/, $env if defined $env and length $env;
-    #my @dirs = map {("$_/blib/arch", "$_/blib/lib")} keys %{$self->{is_tested}};
-    #$CPAN::Frontend->myprint("Prepending @dirs to PERL5LIB.\n");
 
-    my @dirs = map {("$_/blib/arch", "$_/blib/lib")} $self->_list_sorted_descending_is_tested;
+    my @dirs = grep { -d } map {
+        my $d = $_;
+        map {
+            "$d/blib/$_"
+        } @_
+    } $self->_list_sorted_descending_is_tested;
     return if !@dirs;
 
+    my $path_str = $ENV{$var};
+    my @orig;
+    @orig = split /\Q$Config::Config{path_sep}\E/, $path_str if defined $path_str and length $path_str;
+
     if (@dirs < 12) {
-        $CPAN::Frontend->optprint('perl5lib', "Prepending @dirs to PERL5LIB for '$for'\n");
-        $ENV{PERL5LIB} = join $Config::Config{path_sep}, @dirs, @env;
+        $CPAN::Frontend->optprint('perl5lib', "Prepending @dirs to $var for '$for'\n");
     } elsif (@dirs < 24 ) {
         my @d = map {my $cp = $_;
                      $cp =~ s/^\Q$CPAN::Config->{build_dir}\E/%BUILDDIR%/;
@@ -1373,15 +1384,15 @@ sub set_perl5lib {
                                  "%BUILDDIR%=$CPAN::Config->{build_dir} ".
                                  "for '$for'\n"
                                 );
-        $ENV{PERL5LIB} = join $Config::Config{path_sep}, @dirs, @env;
     } else {
         my $cnt = keys %{$self->{is_tested}};
-        $CPAN::Frontend->optprint('perl5lib', "Prepending blib/arch and blib/lib of ".
-                                 "$cnt build dirs to PERL5LIB; ".
+        $CPAN::Frontend->optprint('perl5lib', "Prepending ".join(',', map {"blib/"} @_)." of ".
+                                 "$cnt build dirs to $var; ".
                                  "for '$for'\n"
                                 );
-        $ENV{PERL5LIB} = join $Config::Config{path_sep}, @dirs, @env;
     }
+
+    $ENV{$var} = join $Config::Config{path_sep}, @dirs, @orig;
 }
 
 

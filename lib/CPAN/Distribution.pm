@@ -289,11 +289,10 @@ sub get {
                     ));
         return $self->goto($goto);
     }
-    local $ENV{PERL5LIB} = defined($ENV{PERL5LIB})
-                           ? $ENV{PERL5LIB}
-                           : ($ENV{PERLLIB} || "");
-    local $ENV{PERL5OPT} = defined $ENV{PERL5OPT} ? $ENV{PERL5OPT} : "";
-    $CPAN::META->set_perl5lib;
+    local $ENV{PERL5LIB} = exists($ENV{PERL5LIB}) ? $ENV{PERL5LIB} : "";
+    local $ENV{PERL5OPT} = exists($ENV{PERL5OPT}) ? $ENV{PERL5OPT} : "";
+    local $ENV{PATH} = $ENV{PATH};
+    $CPAN::META->set_perl_env;
     local $ENV{MAKEFLAGS}; # protect us from outer make calls
 
   EXCUSE: {
@@ -1272,12 +1271,10 @@ Could not determine which directory to use for looking at $dist.
         $ENV{CPAN_SHELL_LEVEL} += 1;
         my $shell = CPAN::HandleConfig->safe_quote($CPAN::Config->{'shell'});
 
-        local $ENV{PERL5LIB} = defined($ENV{PERL5LIB})
-            ? $ENV{PERL5LIB}
-                : ($ENV{PERLLIB} || "");
-
-        local $ENV{PERL5OPT} = defined $ENV{PERL5OPT} ? $ENV{PERL5OPT} : "";
-        $CPAN::META->set_perl5lib;
+        local $ENV{PERL5LIB} = exists($ENV{PERL5LIB}) ? $ENV{PERL5LIB} : "";
+        local $ENV{PERL5OPT} = exists($ENV{PERL5OPT}) ? $ENV{PERL5OPT} : "";
+        local $ENV{PATH} = $ENV{PATH};
+        $CPAN::META->set_perl_env;
         local $ENV{MAKEFLAGS}; # protect us from outer make calls
 
         unless (system($shell) == 0) {
@@ -1762,11 +1759,10 @@ is part of the perl-%s distribution. To install that, you need to run
     if ($self->{configure_requires_later}) {
         return;
     }
-    local $ENV{PERL5LIB} = defined($ENV{PERL5LIB})
-                           ? $ENV{PERL5LIB}
-                           : ($ENV{PERLLIB} || "");
-    local $ENV{PERL5OPT} = defined $ENV{PERL5OPT} ? $ENV{PERL5OPT} : "";
-    $CPAN::META->set_perl5lib;
+    local $ENV{PERL5LIB} = exists($ENV{PERL5LIB}) ? $ENV{PERL5LIB} : "";
+    local $ENV{PERL5OPT} = exists($ENV{PERL5OPT}) ? $ENV{PERL5OPT} : "";
+    local $ENV{PATH} = $ENV{PATH};
+    $CPAN::META->set_perl_env;
     local $ENV{MAKEFLAGS}; # protect us from outer make calls
 
     if ($CPAN::Signal) {
@@ -3084,12 +3080,10 @@ sub test {
 
     my $make = $self->{modulebuild} ? "Build" : "make";
 
-    local $ENV{PERL5LIB} = defined($ENV{PERL5LIB})
-                           ? $ENV{PERL5LIB}
-                           : ($ENV{PERLLIB} || "");
-
-    local $ENV{PERL5OPT} = defined $ENV{PERL5OPT} ? $ENV{PERL5OPT} : "";
-    $CPAN::META->set_perl5lib;
+    local $ENV{PERL5LIB} = exists($ENV{PERL5LIB}) ? $ENV{PERL5LIB} : "";
+    local $ENV{PERL5OPT} = exists($ENV{PERL5OPT}) ? $ENV{PERL5OPT} : "";
+    local $ENV{PATH} = $ENV{PATH};
+    $CPAN::META->set_perl_env;
     local $ENV{MAKEFLAGS}; # protect us from outer make calls
 
     $CPAN::Frontend->myprint("Running $make test\n");
@@ -3602,12 +3596,10 @@ sub install {
         delete $self->{force_update};
         return;
     }
-    local $ENV{PERL5LIB} = defined($ENV{PERL5LIB})
-                           ? $ENV{PERL5LIB}
-                           : ($ENV{PERLLIB} || "");
-
-    local $ENV{PERL5OPT} = defined $ENV{PERL5OPT} ? $ENV{PERL5OPT} : "";
-    $CPAN::META->set_perl5lib;
+    local $ENV{PERL5LIB} = exists($ENV{PERL5LIB}) ? $ENV{PERL5LIB} : "";
+    local $ENV{PERL5OPT} = exists($ENV{PERL5OPT}) ? $ENV{PERL5OPT} : "";
+    local $ENV{PATH} = $ENV{PATH};
+    $CPAN::META->set_perl_env;
     my($pipe) = FileHandle->new("$system $stderr |") || Carp::croak
 ("Can't execute $system: $!");
     my($makeout) = "";

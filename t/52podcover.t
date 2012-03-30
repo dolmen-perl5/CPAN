@@ -20,7 +20,8 @@ my $trustme = { trustme => [ qw{
                                 readhist
                                 reset_tested
                                 savehist
-                                set_perl5lib
+                                set_perl_env
+                                set_perl_path
                                 shell
                                 soft_chdir_with_alternatives
                                 suggest_myconfig
