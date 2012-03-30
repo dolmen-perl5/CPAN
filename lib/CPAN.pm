@@ -1343,8 +1343,6 @@ sub _list_sorted_descending_is_tested {
 #-> sub CPAN::set_perl5lib
 # Notes on max environment variable length:
 #   - Win32 : XP or later, 8191; Win2000 or NT4, 2047
-{
-my $fh;
 sub set_perl5lib {
     my($self,$for) = @_;
     unless ($for) {
@@ -1384,7 +1382,7 @@ sub set_perl5lib {
                                 );
         $ENV{PERL5LIB} = join $Config::Config{path_sep}, @dirs, @env;
     }
-}}
+}
 
 
 1;
