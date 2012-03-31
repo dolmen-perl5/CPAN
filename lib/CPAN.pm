@@ -1308,7 +1308,7 @@ sub reset_tested {
 
 #-> sub CPAN::is_installed
 # unsets the is_tested flag: as soon as the thing is installed, it is
-# not needed in set_perl5lib anymore
+# not needed in set_perl_env anymore
 sub is_installed {
     my($self,$what) = @_;
     delete $self->{is_tested}{$what};
@@ -1341,14 +1341,26 @@ sub _list_sorted_descending_is_tested {
 }
 
 sub set_perl_env {
-	my ($self, $for) = @_;
+    my ($self, $for) = @_;
     unless ($for) {
         $for = (caller(1))[3];
         $for =~ s/.*://;
     }
-	$ENV{PERL5LIB} = exists $ENV{PERL5LIB} ? $ENV{PERL5LIB} : ($ENV{PERLLIB} || "");
-	$self->set_perl_env_path($for, PERL5LIB => qw<arch lib>);
-	$self->set_perl_env_path($for, PATH => qw<script>);
+    $ENV{PERL5LIB} = exists $ENV{PERL5LIB} ? $ENV{PERL5LIB} : ($ENV{PERLLIB} || "");
+    $self->set_perl_env_path($for, PERL5LIB => qw<arch lib>);
+    $self->set_perl_env_path($for, PATH => qw<script>);
+}
+
+sub _useful_dir {
+    my $dir = shift;
+
+    opendir my $dh, $dir or return;
+    while (readdir $dh) {
+        # Skip any .* entry: . .. .exists (created by EU:MM)
+        next if substr($_, 0, 1) eq '.';
+        return 1;
+    }
+    return;
 }
 
 
@@ -1361,12 +1373,14 @@ sub set_perl_env_path {
     $self->{is_tested} ||= {};
     return unless %{$self->{is_tested}};
 
-    my @dirs = grep { -d } map {
-        my $d = $_;
+    my @dirs =
+        grep \&_useful_dir,
         map {
-            "$d/blib/$_"
-        } @_
-    } $self->_list_sorted_descending_is_tested;
+            my $d = $_;
+            map {
+                "$d/blib/$_"
+            } @_
+        } $self->_list_sorted_descending_is_tested;
     return if !@dirs;
 
     my $path_str = $ENV{$var};
@@ -1380,7 +1394,7 @@ sub set_perl_env_path {
                      $cp =~ s/^\Q$CPAN::Config->{build_dir}\E/%BUILDDIR%/;
                      $cp
                  } @dirs;
-        $CPAN::Frontend->optprint('perl5lib', "Prepending @d to PERL5LIB; ".
+        $CPAN::Frontend->optprint('perl5lib', "Prepending @d to $var; ".
                                  "%BUILDDIR%=$CPAN::Config->{build_dir} ".
                                  "for '$for'\n"
                                 );
